@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 
@@ -15,15 +16,7 @@ class _HomePageState extends State<HomePage> {
           centerTitle: true,
           elevation: 20,
         ),
-        body: Center(
-            child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text('data')
-            //Text('Numero de Taps!!!! ', style: _estiloTexto),
-            //Text('$_conteo',style: _estiloTexto) //$ interpolacion string
-          ],
-        )
+        body: Center(child: _retrieveUsers()
             // la mayoria de los Widgets solo pueden tener un child
             ),
         //floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
@@ -80,6 +73,30 @@ class _HomePageState extends State<HomePage> {
                   child: const Text("Confirm"))
             ],
           );
+        });
+  }
+
+  StreamBuilder<QuerySnapshot> _retrieveUsers() {
+    return new StreamBuilder<QuerySnapshot>(
+        // Interacts with Firestore (not CloudFunction)
+        stream: Firestore.instance.collection('users').snapshots(),
+        builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+          if (!snapshot.hasData || snapshot.data == null) {
+            print("retrieve users do not have data.");
+            //print(logger);
+            return Container();
+          }
+
+          // This ListView widget consists of a list of tiles
+          // each represents a user.
+          return ListView.builder(
+              itemCount: snapshot.data.documents.length,
+              itemBuilder: (context, index) {
+                return new ListTile(
+                    title: new Text(snapshot.data.documents[index]['name']),
+                    subtitle:
+                        new Text(snapshot.data.documents[index]['email']));
+              });
         });
   }
 }
